@@ -6,6 +6,9 @@ import { nowAR } from '@/lib/dates';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  const owner = (process.env.OWNER_WHATSAPP ?? '').replace(/\D/g, '');
+  const waHref = owner ? `https://wa.me/${owner}?text=${encodeURIComponent('Hola! Quiero cambiar o cancelar mi turno.')}` : null;
+
   const [config, services] = await Promise.all([
     loadConfig(),
     db().from('services').select('name').eq('active', true).order('sort_order'),
@@ -26,7 +29,9 @@ export default async function Home() {
         <div className="rounded-3xl bg-white/70 p-5 shadow-xl shadow-ink/10 backdrop-blur sm:p-8">
           <BookingForm today={nowAR().date} deposit={config.deposit_amount} services={(services.data ?? []).map((s) => s.name)} payments={process.env.PAYMENTS_ENABLED === 'true'} />
         </div>
-        <p className="mt-6 text-center text-sm text-ink/50">¿Necesitás cancelar o cambiar un turno? Escribinos por WhatsApp.</p>
+        <p className="mt-6 text-center text-sm text-ink/50">¿Necesitás cancelar o cambiar un turno? Escribinos por{' '}
+          {waHref ? <a href={waHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-aqua-dark underline">WhatsApp</a> : 'WhatsApp'}.
+        </p>
       </div>
     </main>
   );

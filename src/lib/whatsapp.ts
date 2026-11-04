@@ -1,4 +1,4 @@
-import { formatDateAR } from './dates';
+import { formatDateAR, nowAR } from './dates';
 import { sendPush } from './push';
 
 /**
@@ -43,7 +43,7 @@ export async function notifyNewAppointment(a: NewAppt, paid: boolean) {
   const time = String(a.appt_time).slice(0, 5);
   const seña = paid ? `\nSeña: $${Number(a.deposit_amount).toLocaleString('es-AR')}` : '\n(sin seña - modo prueba)';
   await Promise.allSettled([
-    sendPush({ title: `🐶 Nuevo turno: ${a.pet_name}`, body: `${date} ${time} · ${a.owner_name}${a.service ? ` · ${a.service}` : ''}`, url: '/admin' }),
+    sendPush({ title: `🐶 Nuevo turno: ${a.pet_name}`, body: `${a.appt_date === nowAR().date ? `Hoy (${date} ${time})` : `${date} ${time}`} · ${a.owner_name}${a.service ? ` · ${a.service}` : ''}`, url: '/admin' }),
     notifyOwner(
       `🐶 Nuevo turno confirmado\nMascota: ${a.pet_name}\nDueño/a: ${a.owner_name}\nTel: ${a.phone}\nServicio: ${a.service ?? '-'}\nFecha: ${date}\nHora: ${time}${seña}`,
       [a.pet_name, a.owner_name, a.phone, date, time],

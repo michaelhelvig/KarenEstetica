@@ -130,12 +130,12 @@ export default function Admin() {
             return (
               <button key={date} type="button" onClick={() => setSel(sel === date ? null : date)}
                 aria-label={`${n} de ${MESES[m - 1]}: ${isBlocked ? 'cerrado' : `${list.length} turnos`}`}
-                className={`relative aspect-square rounded-xl pb-2 font-semibold transition ${cls} ${date === today ? 'border-2 border-ink' : ''} ${sel === date ? 'ring-4 ring-sun ring-offset-2 ring-offset-white' : ''}`}>
-                {date === today && <span className="absolute inset-x-0 top-0.5 text-[10px] font-bold leading-3 no-underline">Hoy</span>}
-                {n}
-                {k > 0 && (
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full px-1.5 text-[11px] leading-4 text-white ${badge}`}>{k}{refund ? '!' : ''}</span>
-                )}
+                className={`flex h-14 flex-col items-center justify-center rounded-xl font-semibold transition sm:h-16 ${cls} ${date === today ? 'border-2 border-ink' : ''} ${sel === date ? 'ring-4 ring-sun ring-offset-2 ring-offset-white' : ''}`}>
+                <span className="h-4 text-[10px] font-bold leading-4">{date === today ? 'Hoy' : ''}</span>
+                <span className="leading-5">{n}</span>
+                <span className="h-4">
+                  {k > 0 && <span className={`inline-block rounded-full px-1.5 text-[11px] leading-4 text-white ${badge}`}>{k}{refund ? '!' : ''}</span>}
+                </span>
               </button>
             );
           })}

@@ -3,9 +3,12 @@ import { db } from '@/lib/supabase';
 import { expireStale, getSlots, loadConfig } from '@/lib/availability';
 import { isDate, isTime } from '@/lib/dates';
 import { createPreference } from '@/lib/mercadopago';
+import { notifyNewAppointment } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
 
+// PAYMENTS_ENABLED=true activa el cobro de seña. Sin esa variable, los turnos se confirman directo (modo prueba).
+const PAYMENTS = process.env.PAYMENTS_ENABLED === 'true';
 const HOLD_MINUTES = 15; // tiempo que se reserva el horario mientras la persona paga
 
 /** POST /api/appointments -> crea el turno en "pending" y devuelve el link de pago de Mercado Pago. */
@@ -38,11 +41,17 @@ export async function POST(req: Request) {
     const { data: appt, error } = await db().from('appointments').insert({
       pet_name: petName, owner_name: ownerName, phone, service: service || null,
       appt_date: date, appt_time: time, deposit_amount: config.deposit_amount,
-      status: 'pending', expires_at: expiresAt.toISOString(),
-    }).select('id').single();
+      status: PAYMENTS ? 'pending' : 'confirmed',
+      expires_at: PAYMENTS ? expiresAt.toISOString() : null,
+    }).select('*').single();
 
     if (error?.code === '23505') return NextResponse.json({ error: 'Ese horario acaba de ser tomado. Elegí otro.' }, { status: 409 });
     if (error || !appt) throw error ?? new Error('insert falló');
+
+    if (!PAYMENTS) {
+      await notifyNewAppointment(appt, false);
+      return NextResponse.json({ url: `/turno/resultado?s=ok&external_reference=${appt.id}` });
+    }
 
     try {
       const pref = await createPreference({ appointmentId: appt.id, amount: config.deposit_amount, expiresAt });

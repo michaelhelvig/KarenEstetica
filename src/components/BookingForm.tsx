@@ -6,7 +6,7 @@ type Slot = { time: string; free: boolean };
 const input = 'w-full rounded-xl border-2 border-ink/10 bg-white px-4 py-3 text-base placeholder:text-ink/35 focus:border-aqua focus:outline-none';
 const label = 'mb-1 block text-sm font-semibold';
 
-export default function BookingForm({ today, deposit, services }: { today: string; deposit: number; services: string[] }) {
+export default function BookingForm({ today, deposit, services, payments }: { today: string; deposit: number; services: string[]; payments: boolean }) {
   const [petName, setPetName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -94,10 +94,9 @@ export default function BookingForm({ today, deposit, services }: { today: strin
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {slots?.map((s) => (
               <button key={s.time} type="button" disabled={!s.free} onClick={() => setTime(s.time)}
-                className={`rounded-xl border-2 py-2.5 font-semibold transition ${
-                  time === s.time ? 'border-aqua bg-aqua text-white'
-                  : s.free ? 'border-aqua/30 bg-white hover:border-aqua'
-                  : 'border-transparent bg-ink/5 text-ink/30 line-through'}`}>
+                className={`rounded-xl border-2 py-2.5 font-semibold transition ${time === s.time ? 'border-aqua bg-aqua text-white'
+                    : s.free ? 'border-aqua/30 bg-white hover:border-aqua'
+                      : 'border-transparent bg-ink/5 text-ink/30 line-through'}`}>
                 {s.time}
               </button>
             ))}
@@ -109,11 +108,11 @@ export default function BookingForm({ today, deposit, services }: { today: strin
         <p className="text-sm text-white/70">
           {date && time ? <>Turno para <b className="text-white">{petName || 'tu mascota'}</b> el <b className="text-white">{nice}</b> a las <b className="text-white">{time}</b>.</> : 'Elegí día y horario para continuar.'}
         </p>
-        <p className="mt-1 text-sm text-white/70">Para confirmarlo abonás una seña de <b className="text-white">{money}</b> por Mercado Pago. El horario queda reservado 15 minutos mientras pagás.</p>
+        {payments && <p className="mt-1 text-sm text-white/70">Para confirmarlo abonás una seña de <b className="text-white">{money}</b> por Mercado Pago. El horario queda reservado 15 minutos mientras pagás.</p>}
         {error && <p role="alert" className="mt-3 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-100">{error}</p>}
         <button type="submit" disabled={busy || !date || !time}
           className="mt-4 w-full rounded-xl bg-sun py-3.5 font-display text-lg font-semibold text-ink transition hover:bg-sun-dark disabled:opacity-50">
-          {busy ? 'Abriendo Mercado Pago…' : `Pagar seña de ${money}`}
+          {busy ? (payments ? 'Abriendo Mercado Pago…' : 'Reservando…') : payments ? `Pagar seña de ${money}` : 'Reservar turno'}
         </button>
       </section>
     </form>

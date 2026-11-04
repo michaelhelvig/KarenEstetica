@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { getPayment } from '@/lib/mercadopago';
-import { notifyOwner } from '@/lib/whatsapp';
+import { notifyNewAppointment, notifyOwner } from '@/lib/whatsapp';
 import { formatDateAR } from '@/lib/dates';
 
 export const dynamic = 'force-dynamic';
@@ -37,14 +37,7 @@ export async function POST(req: Request) {
     }
     if (error) throw error;
 
-    if (appt) {
-      const date = formatDateAR(appt.appt_date);
-      const time = String(appt.appt_time).slice(0, 5);
-      await notifyOwner(
-        `🐶 Nuevo turno confirmado\nMascota: ${appt.pet_name}\nDueño/a: ${appt.owner_name}\nTel: ${appt.phone}\nServicio: ${appt.service ?? '-'}\nFecha: ${date}\nHora: ${time}\nSeña: $${Number(appt.deposit_amount).toLocaleString('es-AR')}`,
-        [appt.pet_name, appt.owner_name, appt.phone, date, time],
-      );
-    }
+    if (appt) await notifyNewAppointment(appt, true);
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error('[mp webhook]', e);
